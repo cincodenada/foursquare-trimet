@@ -13,7 +13,7 @@ class Callback(object):
         (venues, orphans) = self.crunch.crunch()
         outstr = ""
         for n, vl in venues.items():
-            outstr += "{}: {}<br/>\n".format(n, len(vl))
+            outstr += "{}: {}<br/>\n".format(escape(n), len(vl))
 
         for o in orphans:
             outstr += '<a href="https://foursquare.com/v/{}">{}</a><br/>\n'.format(o['id'], o['name'])

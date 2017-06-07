@@ -10,7 +10,7 @@ search:
         "<Service> Stop <num>": (\w+) Stop (\d+)
         "<Service> Stop ID<num>": (\w+) Stop ID(\d+)
         "<Service> Stop ID <num>": (\w+) Stop ID (\d+)
-        "<Service> Bus Stop <num>": (w+) Bus Stop (\d+)
-        "<Service> Bus Stop ID<num>": (w+) Bus Stop ID(\d+)
-        "<Service> Bus Stop ID <num>": (w+) Bus Stop ID (\d+)
+        "<Service> Bus Stop <num>": (\w+) Bus Stop (\d+)
+        "<Service> Bus Stop ID<num>": (\w+) Bus Stop ID(\d+)
+        "<Service> Bus Stop ID <num>": (\w+) Bus Stop ID (\d+)
     near: Portland, OR

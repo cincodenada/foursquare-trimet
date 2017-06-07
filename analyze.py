@@ -42,12 +42,20 @@ class Analyzer(object):
         venues = {}
         orphans = []
         for s in stops['venues']:
-            for n, r in self.regexes.items():
-                if(r.match(s['name'])):
-                    if(n not in venues):
-                        venues[n] = []
-                    venues[n].append(s)
-                else:
-                    orphans.append(s)
+            which = self.getFormat(s['name'])
+            if(which):
+                if(which not in venues):
+                    venues[which] = []
+                venues[which].append(s)
+            else:
+                orphans.append(s)
 
         return (venues, orphans)
+
+    def getFormat(self, name):
+        for n, r in self.regexes.items():
+            if(r.match(name)):
+                return n
+
+        return None
+
