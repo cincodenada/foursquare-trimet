@@ -30,6 +30,22 @@ class Analyzer(object):
         outfile.close()
 
     def crunch(self):
+        self.venues = {}
+        self.orphans = []
+
+        sconf = self.config['search']
+        # TODO: Make signs work everywhere
+        gs = sconf['gridsize']
+        for lat in range(sconf['sw']['lat'], sconf['ne']['lat'], gs):
+            for lon in range(sconf['ne']['lon'], sconf['sw']['lon'], gs):
+                ne = ','.join([lat+gs, lon])
+                sw = ','.join([lat, lon+gs])
+                self.subcrunch(ne, sw)
+
+        return (self.venues, self.orphans)
+
+    def subcrunch(self, ne, sw):
+        print("Checking grid from {} to {}...".format(ne, sw))
         searchconf = self.config['search']
         cats = ','.join(searchconf['category_id'])
         stops = self.client.venues.search(params={
@@ -40,18 +56,14 @@ class Analyzer(object):
             'limit': 50,
         })
 
-        venues = {}
-        orphans = []
         for s in stops['venues']:
             which = self.getFormat(s['name'])
             if(which):
-                if(which not in venues):
-                    venues[which] = []
-                venues[which].append(s)
+                if(which not in self.venues):
+                    self.venues[which] = []
+                self.venues[which].append(s)
             else:
-                orphans.append(s)
-
-        return (venues, orphans)
+                self.orphans.append(s)
 
     def getFormat(self, name):
         for n, r in self.regexes.items():
