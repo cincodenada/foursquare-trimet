@@ -40,10 +40,13 @@ class Analyzer(object):
         sconf = self.config['search']
         # TODO: Make signs work everywhere
         gs = sconf['gridsize']
+        print(frange(sconf['sw']['lat'], sconf['ne']['lat'], gs, 100))
+        print(frange(sconf['sw']['lon'], sconf['ne']['lon'], gs, 100))
+
         for lat in frange(sconf['sw']['lat'], sconf['ne']['lat'], gs, 100):
-            for lon in frange(sconf['ne']['lon'], sconf['sw']['lon'], gs, 100):
-                ne = ','.join([lat+gs, lon])
-                sw = ','.join([lat, lon+gs])
+            for lon in frange(sconf['sw']['lon'], sconf['ne']['lon'], gs, 100):
+                ne = ','.join([str(x+gs) for x in [lat, lon]])
+                sw = ','.join([str(x) for x in [lat, lon]])
                 self.subcrunch(ne, sw)
 
         return (self.venues, self.orphans)
@@ -53,7 +56,8 @@ class Analyzer(object):
         searchconf = self.config['search']
         cats = ','.join(searchconf['category_id'])
         stops = self.client.venues.search(params={
-            'near': searchconf['near'],
+            'ne': ne,
+            'sw': sw,
             'v': self.updated,
             'categoryId': cats,
             'intent': 'browse',
