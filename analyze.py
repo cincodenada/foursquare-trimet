@@ -37,6 +37,7 @@ class Analyzer(object):
             'v': self.updated,
             'categoryId': cats,
             'intent': 'browse',
+            'limit': 50,
         })
 
         venues = {}
