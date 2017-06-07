@@ -1,0 +1,16 @@
+---
+api:
+    id: YOUR_CLIENT_ID
+    secret: YOUR_CLIENT_SECRET
+    callback: http://localhost:8080/callback
+search:
+    category_id:
+        - 52f2ab2ebcbc57f1066b8b4f
+    regex:
+        "<Service> Stop <num>": (\w+) Stop (\d+)
+        "<Service> Stop ID<num>": (\w+) Stop ID(\d+)
+        "<Service> Stop ID <num>": (\w+) Stop ID (\d+)
+        "<Service> Bus Stop <num>": (w+) Bus Stop (\d+)
+        "<Service> Bus Stop ID<num>": (w+) Bus Stop ID(\d+)
+        "<Service> Bus Stop ID <num>": (w+) Bus Stop ID (\d+)
+    near: Portland, OR
