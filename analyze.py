@@ -2,6 +2,10 @@ import foursquare
 import re
 import os
 
+def frange(start, end, step, factor):
+    return [x/factor for x in range(int(start*factor), int(end*factor), int(step*factor))]
+
+
 class Analyzer(object):
     def __init__(self, config):
         self.config = config
@@ -36,8 +40,8 @@ class Analyzer(object):
         sconf = self.config['search']
         # TODO: Make signs work everywhere
         gs = sconf['gridsize']
-        for lat in range(sconf['sw']['lat'], sconf['ne']['lat'], gs):
-            for lon in range(sconf['ne']['lon'], sconf['sw']['lon'], gs):
+        for lat in frange(sconf['sw']['lat'], sconf['ne']['lat'], gs, 100):
+            for lon in frange(sconf['ne']['lon'], sconf['sw']['lon'], gs, 100):
                 ne = ','.join([lat+gs, lon])
                 sw = ','.join([lat, lon+gs])
                 self.subcrunch(ne, sw)
