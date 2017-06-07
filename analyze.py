@@ -1,6 +1,7 @@
 import foursquare
 import re
 import os
+import pickle
 
 def frange(start, end, step, factor):
     return [x/factor for x in range(int(start*factor), int(end*factor), int(step*factor))]
@@ -34,6 +35,9 @@ class Analyzer(object):
         outfile.close()
 
     def crunch(self):
+        if(os.path.isfile('cache')):
+            return pickle.load(open('cache', 'rb'))
+
         self.venues = {}
         self.orphans = []
 
@@ -49,7 +53,9 @@ class Analyzer(object):
                 sw = ','.join([str(x) for x in [lat, lon]])
                 self.subcrunch(ne, sw)
 
-        return (self.venues, self.orphans)
+        out = (self.venues, self.orphans)
+        pickle.dump(out, open('cache','wb'))
+        return out
 
     def subcrunch(self, ne, sw):
         print("Checking grid from {} to {}...".format(ne, sw))
