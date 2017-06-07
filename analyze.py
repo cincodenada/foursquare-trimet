@@ -16,7 +16,7 @@ class Analyzer(object):
         self.regexes = {n: re.compile(r, re.IGNORECASE) for n, r in config['search']['regex'].items()}
 
         if(os.path.isfile('token')):
-            access_token = file('token', 'r').read()
+            access_token = open('token', 'r').read()
             self.client.set_access_token(access_token)
 
     def get_auth_uri(self):
@@ -25,7 +25,7 @@ class Analyzer(object):
     def authorize(self, token):
         access_token = self.client.oauth.get_token(token)
         self.client.set_access_token(access_token)
-        outfile = file('token','w')
+        outfile = open('token','w')
         outfile.write(access_token)
         outfile.close()
 

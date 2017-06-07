@@ -1,10 +1,11 @@
 import cherrypy
 import analyze
 import yaml
+from html import escape
 
 class Callback(object):
     def __init__(self):
-        self.config = yaml.safe_load(file('config.yaml','r'))
+        self.config = yaml.safe_load(open('config.yaml','r'))
         self.crunch = analyze.Analyzer(self.config)
 
     @cherrypy.expose
