@@ -1,7 +1,21 @@
 import cherrypy
 import analyze
 import yaml
+import collections
 from html import escape
+
+# Rewire YAML to use OrderedDict
+# From https://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts/21048064#21048064
+_mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
+
+def dict_representer(dumper, data):
+    return dumper.represent_dict(data.iteritems())
+
+def dict_constructor(loader, node):
+    return collections.OrderedDict(loader.construct_pairs(node))
+
+yaml.add_representer(collections.OrderedDict, dict_representer)
+yaml.add_constructor(_mapping_tag, dict_constructor)
 
 class Callback(object):
     def __init__(self):
