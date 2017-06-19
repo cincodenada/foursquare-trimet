@@ -2,6 +2,7 @@ import foursquare
 import re
 import os
 import pickle
+from collections import Counter
 
 def frange(start, end, step, factor):
     return [x/factor for x in range(int(start*factor), int(end*factor), int(step*factor))]
@@ -36,7 +37,8 @@ class Analyzer(object):
     def crunch(self):
         self.venues = {}
         self.orphans = []
-        self.services = {}
+        self.services = Counter()
+        self.hash = Counter()
 
         # TODO: Make signs work everywhere
         gs = self.config['gridsize']
@@ -56,16 +58,17 @@ class Analyzer(object):
 
         stops = self.getQuadrant(ne, sw)
 
+        if(len(stops['venues']) >= self.config['max_results']):
+            print("Warning! Found {} venues, consider reducing grid size to get all".format(len(stops['venues'])))
+
         for s in stops['venues']:
             matched = self.getFormat(s['name'])
 
             if(matched):
                 (which, parts) = matched
 
-                if(parts[0] in self.services):
-                    self.services[parts[0]]+=1
-                else:
-                    self.services[parts[0]]=1
+                self.services[parts[0]]+=1
+                self.hash[parts[1]] += 1
 
                 if(which not in self.venues):
                     self.venues[which] = []

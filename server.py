@@ -37,6 +37,10 @@ class Callback(object):
         for s, count in self.crunch.services.items():
             outstr += "{}: {}<br/>\n".format(s, count)
 
+        outstr += "<hr>"
+        for s, count in self.crunch.hash.items():
+            outstr += "{}: {}<br/>\n".format(s, count)
+
         return outstr
 
     @cherrypy.expose
