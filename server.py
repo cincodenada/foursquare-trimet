@@ -38,7 +38,7 @@ class Callback(object):
 
         for gn, vals in self.crunch.subitems.items():
             outstr += "<hr><h2>{}</h2>".format(gn)
-            valorder = sorted(vals.keys(), key=lambda k: len(vals[k]), reverse=True)
+            valorder = sorted(vals.keys(), key=lambda k: vals[k], reverse=True)
             for s in valorder:
                 outstr += "\"{}\": {}<br/>\n".format(s, vals[s])
 

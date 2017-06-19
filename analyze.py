@@ -106,10 +106,10 @@ class Analyzer(object):
         groups = {}
         for phase, regexes in self.regexes.items():
             for n, r in regexes.items():
-                print("Matching \"{}\" against {}...".format(tomatch, r))
+                #print("Matching \"{}\" against {}...".format(tomatch, r))
                 m = r.match(tomatch)
                 if(m):
-                    print("Got it!")
+                    #print("Got it!")
                     break;
 
             if(m):

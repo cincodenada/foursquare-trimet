@@ -10,9 +10,8 @@ regex:
         "<Service> Stop": (?:(?P<service>.+) )?Stop(?P<remainder>.*)$
         "<Service>": (?:(?P<service>\w+) )?(?P<remainder>.*)$
     id:
-        "<num>": (?P<stopid> ?)(?P<hash>#?)(\d+) ?(?P<remainder>.*)$
-        "ID<num>": (?P<stopid> ?)ID(?P<hash>#?)(\d+) ?(?P<remainder>.*)$
-        "ID <num>": (?P<stopid> ?)ID (?P<hash>#?)(\d+) ?(?P<remainder>.*)$
+        "<num>": (?P<stopid> ?)(?P<hash> ?#? ?)(\d+) ?(?P<remainder>.*)$
+        "ID <num>": (?P<stopid> ?)ID(?P<hash> ?#? ?)(\d+) ?(?P<remainder>.*)$
     extra:
         "/ street & street": / ?(.*) & (.*)$
         "/ street and street": / ?(.*) and (.*)$
@@ -23,6 +22,6 @@ ne:
 sw:
     lat: 45.45
     lon: -122.70
-gridsize: 0.02
+gridsize: 0.01
 
 max_results: 50
