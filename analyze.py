@@ -2,7 +2,7 @@ import foursquare
 import re
 import os
 import pickle
-from collections import Counter
+from collections import Counter, defaultdict, OrderedDict
 
 def frange(start, end, step, factor):
     return [x/factor for x in range(int(start*factor), int(end*factor), int(step*factor))]
@@ -18,7 +18,12 @@ class Analyzer(object):
         )
         self.updated = '20170606'
 
-        self.regexes = {n: re.compile(r, re.IGNORECASE) for n, r in config['regex'].items()}
+        self.regexes = OrderedDict()
+        for phase, relist in config['regex'].items():
+            print(phase)
+            self.regexes[phase] = OrderedDict()
+            for n, r in relist.items():
+                self.regexes[phase][n] = re.compile(r, re.IGNORECASE)
 
         if(os.path.isfile('token')):
             access_token = open('token', 'r').read()
@@ -35,10 +40,9 @@ class Analyzer(object):
         outfile.close()
 
     def crunch(self):
-        self.venues = {}
+        self.venues = defaultdict(list)
         self.orphans = []
-        self.services = Counter()
-        self.hash = Counter()
+        self.subitems = defaultdict(Counter)
 
         # TODO: Make signs work everywhere
         gs = self.config['gridsize']
@@ -65,13 +69,15 @@ class Analyzer(object):
             matched = self.getFormat(s['name'])
 
             if(matched):
-                (which, parts) = matched
+                (parts, groups) = matched
 
-                self.services[parts[0]]+=1
-                self.hash[parts[1]] += 1
+                for gn, val in groups.items():
+                    self.subitems[gn][val]+=1
 
-                if(which not in self.venues):
-                    self.venues[which] = []
+                if(groups['service'] == 'Bus'):
+                    print(s['name'])
+
+                which = ' '.join(parts.values())
                 self.venues[which].append(s)
             else:
                 self.orphans.append(s)
@@ -95,10 +101,29 @@ class Analyzer(object):
         return stops
 
     def getFormat(self, name):
-        for n, r in self.regexes.items():
-            m = r.match(name)
+        tomatch = name
+        parts = OrderedDict()
+        groups = {}
+        for phase, regexes in self.regexes.items():
+            for n, r in regexes.items():
+                print("Matching \"{}\" against {}...".format(tomatch, r))
+                m = r.match(tomatch)
+                if(m):
+                    print("Got it!")
+                    break;
+
             if(m):
-                return (n, m.groups())
+                parts[phase] = n
+                groups.update(m.groupdict())
+                if('remainder' in m.groupdict()):
+                    tomatch = groups['remainder']
+                else:
+                    break
+            else:
+                return None
+
+        groups.pop('remainder')
+        return (parts, groups)
 
         return None
 

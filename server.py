@@ -28,19 +28,18 @@ class Callback(object):
     def index(self):
         (venues, orphans) = self.crunch.crunch()
         outstr = ""
-        for n, vl in venues.items():
-            outstr += "{}: {}<br/>\n".format(escape(n), len(vl))
+        types = sorted(venues.keys(), key=lambda k: len(venues[k]), reverse=True)
+        for t in types:
+            vl = venues[t]
+            outstr += "{}: {}<br/>\n".format(escape(t), len(vl))
 
         for o in orphans:
             outstr += '<a href="https://foursquare.com/v/{}">{}</a><br/>\n'.format(o['id'], o['name'])
 
-        outstr += "<hr>"
-        for s, count in self.crunch.services.items():
-            outstr += "{}: {}<br/>\n".format(s, count)
-
-        outstr += "<hr>"
-        for s, count in self.crunch.hash.items():
-            outstr += "{}: {}<br/>\n".format(s, count)
+        for gn, vals in self.crunch.subitems.items():
+            outstr += "<hr><h2>{}</h2>".format(gn)
+            for s, count in vals.items():
+                outstr += "\"{}\": {}<br/>\n".format(s, count)
 
         return outstr
 
