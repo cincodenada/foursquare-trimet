@@ -4,14 +4,14 @@ category_id:
     - 4bf58dd8d48988d1fe931735 # Bus Station
     - 4bf58dd8d48988d12b951735 # Bus Line
 regex:
-    "<Service> Bus Stop <num>": (\w+) Bus Stop (#?)(\d+)
-    "<Service> Bus Stop ID<num>": (\w+) Bus Stop ID(#?)(\d+)
-    "<Service> Bus Stop ID <num>": (\w+) Bus Stop ID (#?)(\d+)
-    "<Service> Stop <num>": (\w+) Stop (#?)(\d+)
-    "<Service> Stop ID<num>": (\w+) Stop ID(#?)(\d+)
-    "<Service> Stop ID <num>": (\w+) Stop ID (#?)(\d+)
-    "<Service> ID<num>": (\w+) ID(#?)(\d+)
-    "<Service> ID <num>": (\w+) ID (#?)(\d+)
+    "<Service> Bus Stop <num>": (?:(\w+) )?Bus Stop (#?)(\d+)$
+    "<Service> Bus Stop ID<num>": (?:(\w+) )?Bus Stop ID(#?)(\d+)$
+    "<Service> Bus Stop ID <num>": (?:(\w+) )?Bus Stop ID (#?)(\d+)$
+    "<Service> Stop <num>": (?:(\w+) )?Stop (#?)(\d+)$
+    "<Service> Stop ID<num>": (?:(\w+) )?Stop ID(#?)(\d+)$
+    "<Service> Stop ID <num>": (?:(\w+) )?Stop ID (#?)(\d+)$
+    "<Service> ID<num>": (?:(\w+) )?ID(#?)(\d+)$
+    "<Service> ID <num>": (?:(\w+) )?ID (#?)(\d+)$
 ne: 
     lat: 45.59
     lon: -122.55
