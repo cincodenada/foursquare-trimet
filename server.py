@@ -19,6 +19,10 @@ class Callback(object):
         for o in orphans:
             outstr += '<a href="https://foursquare.com/v/{}">{}</a><br/>\n'.format(o['id'], o['name'])
 
+        outstr += "<hr>"
+        for s, count in self.crunch.services.items():
+            outstr += "{}: {}<br/>\n".format(s, count)
+
         return outstr
 
     @cherrypy.expose

@@ -34,11 +34,9 @@ class Analyzer(object):
         outfile.close()
 
     def crunch(self):
-        if(os.path.isfile('cache')):
-            return pickle.load(open('cache', 'rb'))
-
         self.venues = {}
         self.orphans = []
+        self.services = {}
 
         # TODO: Make signs work everywhere
         gs = self.config['gridsize']
@@ -51,12 +49,35 @@ class Analyzer(object):
                 sw = ','.join([str(x) for x in [lat, lon]])
                 self.subcrunch(ne, sw)
 
-        out = (self.venues, self.orphans)
-        pickle.dump(out, open('cache','wb'))
-        return out
+        return (self.venues, self.orphans)
 
     def subcrunch(self, ne, sw):
         print("Checking grid from {} to {}...".format(ne, sw))
+
+        stops = self.getQuadrant(ne, sw)
+
+        for s in stops['venues']:
+            matched = self.getFormat(s['name'])
+
+            if(matched):
+                (which, parts) = matched
+
+                if(parts[0] in self.services):
+                    self.services[parts[0]]+=1
+                else:
+                    self.services[parts[0]]=1
+
+                if(which not in self.venues):
+                    self.venues[which] = []
+                self.venues[which].append(s)
+            else:
+                self.orphans.append(s)
+
+    def getQuadrant(self, ne, sw):
+        path = 'cache/{}_{}'.format(ne, sw)
+        if(os.path.isfile(path)):
+            return pickle.load(open(path, 'rb'))
+
         cats = ','.join(self.config['category_id'])
         stops = self.client.venues.search(params={
             'ne': ne,
@@ -67,19 +88,14 @@ class Analyzer(object):
             'limit': 50,
         })
 
-        for s in stops['venues']:
-            which = self.getFormat(s['name'])
-            if(which):
-                if(which not in self.venues):
-                    self.venues[which] = []
-                self.venues[which].append(s)
-            else:
-                self.orphans.append(s)
+        pickle.dump(stops, open(path,'wb'))
+        return stops
 
     def getFormat(self, name):
         for n, r in self.regexes.items():
-            if(r.match(name)):
-                return n
+            m = r.match(name)
+            if(m):
+                return (n, m.groups())
 
         return None
 
