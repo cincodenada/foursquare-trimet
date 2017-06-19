@@ -5,16 +5,17 @@ category_id:
     - 4bf58dd8d48988d12b951735 # Bus Line
 regex:
     base:
-        "<Service> Bus Stop": (?:(?P<service>\w+) )?Bus Stop(?P<remainder>.*)$
-        "<Service> Stop": (?:(?P<service>\w+) )?Stop(?P<remainder>.*)$
+        "<Service> Bus Line": (?:(?P<service>.+) )?Bus Line(?P<remainder>.*)$
+        "<Service> Bus Stop": (?:(?P<service>.+) )?Bus Stop(?P<remainder>.*)$
+        "<Service> Stop": (?:(?P<service>.+) )?Stop(?P<remainder>.*)$
         "<Service>": (?:(?P<service>\w+) )?(?P<remainder>.*)$
     id:
         "<num>": (?P<stopid> ?)(?P<hash>#?)(\d+) ?(?P<remainder>.*)$
         "ID<num>": (?P<stopid> ?)ID(?P<hash>#?)(\d+) ?(?P<remainder>.*)$
         "ID <num>": (?P<stopid> ?)ID (?P<hash>#?)(\d+) ?(?P<remainder>.*)$
     extra:
-        "/ street & street": / (.*) & (.*)$
-        "/ street and street": / (.*) and (.*)$
+        "/ street & street": / ?(.*) & (.*)$
+        "/ street and street": / ?(.*) and (.*)$
         "Nothing": ^$
 ne: 
     lat: 45.59
