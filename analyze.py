@@ -8,17 +8,16 @@ def frange(start, end, step, factor):
 
 
 class Analyzer(object):
-    def __init__(self, config):
+    def __init__(self, creds, config):
         self.config = config
-        apiconf = config['api']
         self.client = foursquare.Foursquare(
-            client_id=apiconf['id'],
-            client_secret=apiconf['secret'],
-            redirect_uri=apiconf['callback']
+            client_id=creds['id'],
+            client_secret=creds['secret'],
+            redirect_uri=creds['callback']
         )
         self.updated = '20170606'
 
-        self.regexes = {n: re.compile(r, re.IGNORECASE) for n, r in config['search']['regex'].items()}
+        self.regexes = {n: re.compile(r, re.IGNORECASE) for n, r in config['regex'].items()}
 
         if(os.path.isfile('token')):
             access_token = open('token', 'r').read()
@@ -41,14 +40,13 @@ class Analyzer(object):
         self.venues = {}
         self.orphans = []
 
-        sconf = self.config['search']
         # TODO: Make signs work everywhere
-        gs = sconf['gridsize']
-        print(frange(sconf['sw']['lat'], sconf['ne']['lat'], gs, 100))
-        print(frange(sconf['sw']['lon'], sconf['ne']['lon'], gs, 100))
+        gs = self.config['gridsize']
+        print(frange(self.config['sw']['lat'], self.config['ne']['lat'], gs, 100))
+        print(frange(self.config['sw']['lon'], self.config['ne']['lon'], gs, 100))
 
-        for lat in frange(sconf['sw']['lat'], sconf['ne']['lat'], gs, 100):
-            for lon in frange(sconf['sw']['lon'], sconf['ne']['lon'], gs, 100):
+        for lat in frange(self.config['sw']['lat'], self.config['ne']['lat'], gs, 100):
+            for lon in frange(self.config['sw']['lon'], self.config['ne']['lon'], gs, 100):
                 ne = ','.join([str(x+gs) for x in [lat, lon]])
                 sw = ','.join([str(x) for x in [lat, lon]])
                 self.subcrunch(ne, sw)
@@ -59,8 +57,7 @@ class Analyzer(object):
 
     def subcrunch(self, ne, sw):
         print("Checking grid from {} to {}...".format(ne, sw))
-        searchconf = self.config['search']
-        cats = ','.join(searchconf['category_id'])
+        cats = ','.join(self.config['category_id'])
         stops = self.client.venues.search(params={
             'ne': ne,
             'sw': sw,

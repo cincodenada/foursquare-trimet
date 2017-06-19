@@ -5,8 +5,9 @@ from html import escape
 
 class Callback(object):
     def __init__(self):
+        self.creds = yaml.safe_load(open('creds.yaml','r'))
         self.config = yaml.safe_load(open('config.yaml','r'))
-        self.crunch = analyze.Analyzer(self.config)
+        self.crunch = analyze.Analyzer(self.creds, self.config)
 
     @cherrypy.expose
     def index(self):

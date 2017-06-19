@@ -1,0 +1,4 @@
+---
+id: YOUR_CLIENT_ID_HERE
+secret: YOUR_CLIENT_SECRET_HERE
+callback: http://localhost:8080/callback

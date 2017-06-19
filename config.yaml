@@ -1,0 +1,19 @@
+---
+category_id:
+    - 52f2ab2ebcbc57f1066b8b4f
+regex:
+    "<Service> ID<num>": (\w+) ID(\d+)
+    "<Service> ID <num>": (\w+) ID (\d+)
+    "<Service> Stop <num>": (\w+) Stop (\d+)
+    "<Service> Stop ID<num>": (\w+) Stop ID(\d+)
+    "<Service> Stop ID <num>": (\w+) Stop ID (\d+)
+    "<Service> Bus Stop <num>": (\w+) Bus Stop (\d+)
+    "<Service> Bus Stop ID<num>": (\w+) Bus Stop ID(\d+)
+    "<Service> Bus Stop ID <num>": (\w+) Bus Stop ID (\d+)
+ne: 
+    lat: 45.59
+    lon: -122.55
+sw:
+    lat: 45.45
+    lon: -122.70
+gridsize: 0.02
