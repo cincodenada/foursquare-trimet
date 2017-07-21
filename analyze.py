@@ -8,6 +8,23 @@ from collections import Counter, defaultdict, OrderedDict
 def frange(start, end, step, factor):
     return [x/factor for x in range(int(start*factor), int(end*factor), int(step*factor))]
 
+class Coord(object):
+    def __init__(self, lat, lon = None):
+        if(isinstance(lat, dict)):
+            self.lat = lat['lat']
+            self.lon = lat['lon']
+        else:
+            self.lat = lat
+            self.lon = lon
+
+    def addBoth(self, deg):
+        self.lat += deg
+        self.lon += deg
+        return self
+
+    def __str__(self):
+        return '{:0.2f},{:0.2f}'.format(self.lat, self.lon)
+
 
 class VenuePool(object):
     def __init__(self, creds, config):
@@ -47,14 +64,17 @@ class VenuePool(object):
 
         # TODO: Make signs work everywhere
         gs = self.config['gridsize']
-        print(frange(self.config['sw']['lat'], self.config['ne']['lat'], gs, 100))
-        print(frange(self.config['sw']['lon'], self.config['ne']['lon'], gs, 100))
+        ne = Coord(self.config['ne'])
+        sw = Coord(self.config['sw'])
 
-        for lat in frange(self.config['sw']['lat'], self.config['ne']['lat'], gs, 100):
-            for lon in frange(self.config['sw']['lon'], self.config['ne']['lon'], gs, 100):
-                ne = ','.join([str(x+gs) for x in [lat, lon]])
-                sw = ','.join([str(x) for x in [lat, lon]])
-                self.subcrunch(ne, sw)
+        print(frange(sw.lat, ne.lat, gs, 100))
+        print(frange(sw.lon, ne.lon, gs, 100))
+
+        for lat in frange(sw.lat, ne.lat, gs, 100):
+            for lon in frange(sw.lon, ne.lon, gs, 100):
+                curne = Coord(lat, lon).addBoth(gs)
+                cursw = Coord(lat, lon)
+                self.subcrunch(curne, cursw)
 
         return (self.venues, self.orphans)
 
