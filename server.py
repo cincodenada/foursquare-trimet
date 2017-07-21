@@ -59,7 +59,16 @@ class Callback(object):
         venues = self.venues[which]
         print(self.venues.keys())
         out = '<html><body>'
-        out += '<style>tr { height: 1px; } td {height:100%; min-width: 75px; } label { display:block; height: 100%; } input[type="submit"] { position: fixed; top:0.5em; } body { margin-top: 2.5em; }</style>'
+        out += """<style>
+tr { height: 1px; }
+td { height:100%; min-width: 75px; }
+label { display:block; height: 100%; }
+input[type="submit"] { position: fixed; top:0.5em; }
+body { margin-top: 2.5em; }
+tr.warn { background-color: yellow; }
+tr.error { background-color: red; }
+</style>
+"""
         out += '<form action="/standardize/{}" method="POST">'.format(which)
         out += '<input type="submit"/>'
         out += "<table border=\"1\">"
@@ -74,7 +83,14 @@ class Callback(object):
                 checkbox = '<a href="https://foursquare.com/v/{}">No edits</a>'.format(v['id'])
 
 
-            out += '<tr><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
+            trclass = ''
+            if v.fields['num'] and int(v.fields['num']) < 100:
+                trclass = 'warn'
+            if v.num_matching['service'] < 10:
+                trclass = 'warn'
+
+            out += '<tr class="{}"><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
+                trclass,
                 v['id'],
                 v['name'],
                 "<br/>\n".join(["{0} -> <{2}>{1}</{2}>".format(type, after, 'i' if type.find('Category') > -1 else 'b') for type, after in edit.items()]),

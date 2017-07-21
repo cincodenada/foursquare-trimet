@@ -123,6 +123,7 @@ class AnalyzedVenue:
         self.pool = pool
         self.venue = venue
         matched = self.getFormat(venue['name'])
+        self.num_matching = defaultdict(lambda: 0)
 
         if(matched):
             self.matched = True
@@ -201,11 +202,12 @@ class AnalyzedVenue:
             stdfields[f] = v
             if f in self.pool.config['standardize']['coalesce']:
                 freq = sorted(self.pool.fieldcounts[f].keys(), key=lambda k: self.pool.fieldcounts[f][k], reverse=True)
-                for topf in freq:
-                    if(self.areSameish(topf, v)):
-                        stdfields[f] = topf
+                for topv in freq:
+                    if(self.areSameish(topv, v)):
+                        stdfields[f] = topv
+                        self.num_matching[f] = self.pool.fieldcounts[f][topv]
                         break
-
+        
         return self.pool.config['standardize']['format'].format(**stdfields)
 
     def areSameish(self, a, b):
