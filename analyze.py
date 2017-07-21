@@ -8,7 +8,7 @@ def frange(start, end, step, factor):
     return [x/factor for x in range(int(start*factor), int(end*factor), int(step*factor))]
 
 
-class Analyzer(object):
+class VenuePool(object):
     def __init__(self, creds, config):
         self.config = config
         self.client = foursquare.Foursquare(
@@ -66,21 +66,18 @@ class Analyzer(object):
             print("Warning! Found {} venues, consider reducing grid size to get all".format(len(stops['venues'])))
 
         for s in stops['venues']:
-            matched = self.getFormat(s['name'])
+            venue = AnalyzedVenue(self, s)
 
-            if(matched):
-                (parts, groups) = matched
-
-                for gn, val in groups.items():
+            if(venue.matched):
+                for gn, val in venue.groups.items():
                     self.subitems[gn][val]+=1
 
-                if(groups['service'] == 'Bus'):
+                if(venue.groups['service'] == 'Bus'):
                     print(s['name'])
 
-                which = ' '.join(parts.values())
-                self.venues[which].append(s)
+                self.venues[venue.genericName()].append(s)
             else:
-                self.orphans.append(s)
+                self.orphans.append(venue)
 
     def getQuadrant(self, ne, sw):
         path = 'cache/{}_{}'.format(ne, sw)
@@ -100,11 +97,26 @@ class Analyzer(object):
         pickle.dump(stops, open(path,'wb'))
         return stops
 
+class AnalyzedVenue:
+    def __init__(self, pool, venue):
+        self.pool = pool
+        self.venue = venue
+        matched = self.getFormat(venue['name'])
+
+        if(matched):
+            self.matched = True
+            (self.parts, self.groups) = matched
+        else:
+            self.matched = False
+
+    def __getitem__(self, key):
+        return self.venue[key]
+
     def getFormat(self, name):
         tomatch = name
         parts = OrderedDict()
         groups = {}
-        for phase, regexes in self.regexes.items():
+        for phase, regexes in self.pool.regexes.items():
             for n, r in regexes.items():
                 #print("Matching \"{}\" against {}...".format(tomatch, r))
                 m = r.match(tomatch)
@@ -126,4 +138,10 @@ class Analyzer(object):
         return (parts, groups)
 
         return None
+
+    def genericName(self):
+        if(self.matched):
+            return ' '.join(self.parts.values())
+        else:
+            return self.venue['name']
 

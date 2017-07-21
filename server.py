@@ -22,7 +22,7 @@ class Callback(object):
     def __init__(self):
         self.creds = ordered_load(open('creds.yaml','r'))
         self.config = ordered_load(open('config.yaml','r'))
-        self.crunch = analyze.Analyzer(self.creds, self.config)
+        self.crunch = analyze.VenuePool(self.creds, self.config)
 
     @cherrypy.expose
     def index(self):
