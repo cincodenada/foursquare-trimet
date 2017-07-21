@@ -46,6 +46,44 @@ class Callback(object):
         return outstr
 
     @cherrypy.expose
+    def standardize(self, which, approved = None):
+        if approved:
+            for v in self.venues[which]:
+                if v['id'] in approved:
+                    print("Proposing edit for venue {}...".format(v['id']))
+                    result = v.proposeEdit()
+                    if result:
+                        print(result)
+                        self.done.append(v['id'])
+
+        venues = self.venues[which]
+        print(self.venues.keys())
+        out = '<html><body>'
+        out += '<style>tr { height: 1px; } td {height:100%} label { display:block; height: 100%; } input[type="submit"] { position: fixed; } body { padding-top: 2em; }</style>'
+        out += '<form action="/standardize/{}" method="POST">'.format(which)
+        out += '<input type="submit"/>'
+        out += "<table border=\"1\">"
+        for v in venues:
+            edit = v.getEdit()
+            if(edit):
+                if v['id'] in self.done:
+                    checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(v['id'])
+                else:
+                    checkbox = '<label><input type="checkbox" name="approved" value="{}"></label>'.format(v['id'])
+            else:
+                checkbox = '<a href="https://foursquare.com/v/{}">No edits</a>'.format(v['id'])
+
+
+            out += "<tr><td>{}</td><td>{}</td><td>{}</td></tr>\n".format(
+                v['name'],
+                "<br/>\n".join(["{} -> {}".format(before, after) for before, after in edit.items()]),
+                checkbox
+            )
+        out += "</table></form></body></html>"
+
+        return out
+
+    @cherrypy.expose
     def connect(self):
         auth_uri = self.crunch.get_auth_uri()
         raise cherrypy.HTTPRedirect(auth_uri)
