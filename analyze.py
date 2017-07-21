@@ -2,6 +2,7 @@ import foursquare
 import re
 import os
 import pickle
+import copy
 from collections import Counter, defaultdict, OrderedDict
 
 def frange(start, end, step, factor):
@@ -42,7 +43,7 @@ class VenuePool(object):
     def crunch(self):
         self.venues = defaultdict(list)
         self.orphans = []
-        self.subitems = defaultdict(Counter)
+        self.fieldcounts = defaultdict(Counter)
 
         # TODO: Make signs work everywhere
         gs = self.config['gridsize']
@@ -69,13 +70,13 @@ class VenuePool(object):
             venue = AnalyzedVenue(self, s)
 
             if(venue.matched):
-                for gn, val in venue.groups.items():
-                    self.subitems[gn][val]+=1
+                for field, val in venue.fields.items():
+                    self.fieldcounts[field][val]+=1
 
-                if(venue.groups['service'] == 'Bus'):
+                if(venue.fields['service'] == 'Bus'):
                     print(s['name'])
 
-                self.venues[venue.genericName()].append(s)
+                self.venues[venue.genericName()].append(venue)
             else:
                 self.orphans.append(venue)
 
@@ -105,7 +106,7 @@ class AnalyzedVenue:
 
         if(matched):
             self.matched = True
-            (self.parts, self.groups) = matched
+            (self.parts, self.fields) = matched
         else:
             self.matched = False
 
@@ -137,11 +138,59 @@ class AnalyzedVenue:
         groups.pop('remainder')
         return (parts, groups)
 
-        return None
-
     def genericName(self):
         if(self.matched):
             return ' '.join(self.parts.values())
         else:
             return self.venue['name']
 
+    def getEdit(self):
+        std = self.pool.config['standardize']
+        params = {}
+        if(self.standardizedName() != self['name']):
+            params['name'] = self.standardizedName()
+
+        correctPrimary = False
+        remove = []
+        for c in self['categories']:
+            if c['id'] == std['category_id']:
+                if('primary' in c and c['primary']):
+                    correctPrimary = True
+            else:
+                remove.append(c['id'])
+
+        if len(remove):
+            params['removeCategoryIds'] = ','.join(remove)
+        if not correctPrimary:
+            params['primaryCategoryId'] = std['category_id']
+
+        return params
+
+    def proposeEdit(self):
+        edits = self.getEdit()
+        if(edits):
+            return self.pool.client.venues.proposeedit(self['id'], params=edits)
+        else:
+            return False
+
+    def standardizedName(self):
+        stdfields = {}
+        for f, v in self.fields.items():
+            stdfields[f] = v
+            if f in self.pool.config['standardize']['coalesce']:
+                freq = sorted(self.pool.fieldcounts[f].keys(), key=lambda k: self.pool.fieldcounts[f][k], reverse=True)
+                for topf in freq:
+                    if(self.areSameish(topf, v)):
+                        stdfields[f] = topf
+                        break
+
+        return self.pool.config['standardize']['format'].format(**stdfields)
+
+    def areSameish(self, a, b):
+        return (self.standardizeField(a) == self.standardizeField(b))
+
+    def standardizeField(self, field):
+        if(field):
+            return re.sub(r'[^\w\d]+', '', field).lower()
+        else:
+            return field

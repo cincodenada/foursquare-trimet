@@ -23,21 +23,22 @@ class Callback(object):
         self.creds = ordered_load(open('creds.yaml','r'))
         self.config = ordered_load(open('config.yaml','r'))
         self.crunch = analyze.VenuePool(self.creds, self.config)
+        (self.venues, self.orphans) = self.crunch.crunch()
+        self.done = []
 
     @cherrypy.expose
     def index(self):
-        (venues, orphans) = self.crunch.crunch()
         outstr = ""
-        types = sorted(venues.keys(), key=lambda k: len(venues[k]), reverse=True)
+        types = sorted(self.venues.keys(), key=lambda k: len(self.venues[k]), reverse=True)
         for t in types:
-            vl = venues[t]
-            outstr += "{}: {}<br/>\n".format(escape(t), len(vl))
+            vl = self.venues[t]
+            outstr += "<a href=\"/standardize/{0}\">{0}</a>: {1}<br/>\n".format(escape(t), len(vl))
 
-        for o in orphans:
+        for o in self.orphans:
             outstr += '<a href="https://foursquare.com/v/{}">{}</a><br/>\n'.format(o['id'], o['name'])
 
-        for gn, vals in self.crunch.subitems.items():
-            outstr += "<hr><h2>{}</h2>".format(gn)
+        for field, vals in self.crunch.fieldcounts.items():
+            outstr += "<hr><h2>{}</h2>".format(field)
             valorder = sorted(vals.keys(), key=lambda k: vals[k], reverse=True)
             for s in valorder:
                 outstr += "\"{}\": {}<br/>\n".format(s, vals[s])
