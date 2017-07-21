@@ -169,6 +169,8 @@ class AnalyzedVenue:
         params = {}
         if(self.standardizedName() != self['name']):
             params['name'] = self.standardizedName()
+            if not params['name']:
+                return None
 
         correctPrimary = False
         remove = []
