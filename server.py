@@ -60,7 +60,7 @@ class Callback(object):
                         print(result)
                         self.done.append(v['id'])
 
-        pickle.dump(self.done, open('cache/done','wb'))
+            pickle.dump(self.done, open('cache/done','wb'))
 
         venues = self.venues[which]
         print(self.venues.keys())
@@ -90,7 +90,7 @@ tr.error { background-color: red; }
 
 
             trclass = ''
-            if v.fields['num'] and int(v.fields['num']) < 100:
+            if (not 'type' in v.fields or v.fields['type'].lower() == 'stop') and v.fields['num'] and int(v.fields['num']) < 100:
                 trclass = 'warn'
             if v.num_matching['service'] < 10:
                 trclass = 'warn'

@@ -5,9 +5,10 @@ category_id:
     - 4bf58dd8d48988d12b951735 # Bus Line
 regex:
     base:
-        "<Service> Bus Line": (?:(?P<service>.+) )?Bus Line(?P<remainder>.*)$
-        "<Service> Bus Stop": (?:(?P<service>.+) )?Bus Stop(?P<remainder>.*)$
-        "<Service> Stop": (?:(?P<service>.+) )?Stop(?P<remainder>.*)$
+        "<Service> Bus Line": (?:(?P<service>.+) )?Bus (?P<type>Line)(?P<remainder>.*)$
+        "<Service> Bus Stop": (?:(?P<service>.+) )?Bus (?P<type>Stop)(?P<remainder>.*)$
+        "<Service> Stop": (?:(?P<service>.+) )?(?P<type>Stop)(?P<remainder>.*)$
+        "<Service> Line": (?:(?P<service>.+) )?(?P<type>Line)(?P<remainder>.*)$
         "<Service>": (?:(?P<service>\w+) )?(?P<remainder>.*)$
     id:
         "<num>": (?P<stopid> ?)(?P<hash> ?#? ?)(?P<num>\d+) ?(?P<remainder>.*)$
@@ -24,9 +25,21 @@ sw:
     lon: -122.70
 gridsize: 0.01
 standardize:
-    format: "{service} Stop ID {num}"
-    coalesce:
-        - service
-    category_id: 52f2ab2ebcbc57f1066b8b4f
+    Bus Lines:
+        match:
+            type: Line
+        format: "{service} Bus Line {num}"
+        coalesce:
+            - service
+        category_id: 4bf58dd8d48988d12b951735
+        defaults:
+            service: TriMet
+    Bus Stops:
+        format: "{service} Stop ID {num}"
+        coalesce:
+            - service
+        category_id: 52f2ab2ebcbc57f1066b8b4f
+        defaults:
+            service: TriMet
 
 max_results: 50

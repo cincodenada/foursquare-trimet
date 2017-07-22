@@ -93,9 +93,6 @@ class VenuePool(object):
                 for field, val in venue.fields.items():
                     self.fieldcounts[field][val]+=1
 
-                if(venue.fields['service'] == 'Bus'):
-                    print(s['name'])
-
                 self.venues[venue.genericName()].append(venue)
             else:
                 self.orphans.append(venue)
@@ -117,6 +114,22 @@ class VenuePool(object):
 
         pickle.dump(stops, open(path,'wb'))
         return stops
+
+    def getTopValue(self, field, value):
+        freq = sorted(self.fieldcounts[field].keys(), key=lambda k: self.fieldcounts[field][k], reverse=True)
+        for topv in freq:
+            if(self.areSameish(topv, value)):
+                return topv
+
+
+    def areSameish(self, a, b):
+        return (self.stripField(a) == self.stripField(b))
+
+    def stripField(self, field):
+        if(field):
+            return re.sub(r'[^\w\d]+', '', field).lower()
+        else:
+            return field
 
 class AnalyzedVenue:
     def __init__(self, pool, venue):
@@ -165,8 +178,35 @@ class AnalyzedVenue:
         else:
             return self.venue['name']
 
-    def getEdit(self):
+    def getStandard(self):
         std = self.pool.config['standardize']
+        for which, params in std.items():
+            if 'match' in params:
+                is_match = True
+                for k, v in params['match'].items():
+                    if not k in self.fields or not self.fields[k].lower() == v.lower():
+                        is_match = False
+                        continue
+                if is_match:
+                    return params
+            else:
+                return params
+
+        return None
+
+    def standardize(self, field, value):
+        stdconfig = self.getStandard()
+        if field in stdconfig['coalesce']:
+            if value is None and field in stdconfig['defaults']:
+                return stdconfig['defaults'][field]
+            else:
+                return self.pool.getTopValue(field, value)
+
+    def getEdit(self):
+        std = self.getStandard()
+        if not std:
+            return None
+        
         params = {}
         if(self.standardizedName() != self['name']):
             params['name'] = self.standardizedName()
@@ -199,22 +239,12 @@ class AnalyzedVenue:
     def standardizedName(self):
         stdfields = {}
         for f, v in self.fields.items():
-            stdfields[f] = v
-            if f in self.pool.config['standardize']['coalesce']:
-                freq = sorted(self.pool.fieldcounts[f].keys(), key=lambda k: self.pool.fieldcounts[f][k], reverse=True)
-                for topv in freq:
-                    if(self.areSameish(topv, v)):
-                        stdfields[f] = topv
-                        self.num_matching[f] = self.pool.fieldcounts[f][topv]
-                        break
+            std = self.standardize(f, v)
+            if(std):
+                stdfields[f] = std
+                self.num_matching[f] = self.pool.fieldcounts[f][std]
+            else:
+                stdfields[f] = v
         
-        return self.pool.config['standardize']['format'].format(**stdfields)
+        return self.getStandard()['format'].format(**stdfields)
 
-    def areSameish(self, a, b):
-        return (self.standardizeField(a) == self.standardizeField(b))
-
-    def standardizeField(self, field):
-        if(field):
-            return re.sub(r'[^\w\d]+', '', field).lower()
-        else:
-            return field
