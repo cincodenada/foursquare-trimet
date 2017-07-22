@@ -112,8 +112,15 @@ tr.error { background-color: red; }
                         continue
 
             dups = [ v for v in found[id] if v['id'] != best['id'] ]
+            dists = [v.getDist(best)*1000 for v in dups]
 
             trclass = ''
+            if(dists):
+                if max(dists) > 500.0:
+                    trclass = 'error'
+                elif max(dists) > 50.0:
+                    trclass = 'warn'
+
             if best['id'] in self.done['dedup']:
                 checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(best['id'])
             else:
