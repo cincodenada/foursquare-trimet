@@ -40,6 +40,7 @@ input[type="submit"] { position: fixed; top:0.5em; }
 body { margin-top: 2.5em; }
 tr.warn { background-color: yellow; }
 tr.error { background-color: red; }
+.done { display: none; }
 </style>
 """
         out += '<form action="{}" method="POST">'.format(action)
@@ -123,6 +124,7 @@ tr.error { background-color: red; }
 
             if best['id'] in self.done['dedup']:
                 checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(best['id'])
+                trclass.update(['done','submitted'])
             else:
                 checkbox = '<label><input type="checkbox" name="dupes" value="{}:{}"></label>'.format(best['id'], ','.join([v['id'] for v in dups]))
 
@@ -159,10 +161,12 @@ tr.error { background-color: red; }
             if(edit):
                 if v['id'] in self.done['standardize']:
                     checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(v['id'])
+                    trclass.update(['done','submitted'])
                 else:
                     checkbox = '<label><input type="checkbox" name="approved" value="{}"></label>'.format(v['id'])
             else:
                 checkbox = '<a href="https://foursquare.com/v/{}">No edits</a>'.format(v['id'])
+                trclass.update(['done','noedit'])
 
 
             if (not 'type' in v.fields or v.fields['type'].lower() == 'stop') and v.fields['num'] and int(v.fields['num']) < 100:
