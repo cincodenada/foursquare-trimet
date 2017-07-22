@@ -91,9 +91,14 @@ tr.error { background-color: red; }
         dups = set()
         for vl in self.venues.values():
             for v in vl:
-                found[v.fields['num']].append(v)
-                if(len(found[v.fields['num']]) > 1):
-                    dups.add(v.fields['num'])
+                try:
+                    id = "{} {}".format(v.fields['type'].lower(), v.fields['num'])
+                except:
+                    id = "stop {}".format(v.fields['num'])
+
+                found[id].append(v)
+                if(len(found[id]) > 1):
+                    dups.add(id)
 
         out = self.startForm('/dedup')
         for id in dups:
