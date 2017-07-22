@@ -94,6 +94,8 @@ tr.error { background-color: red; }
                 trclass = 'warn'
             if v.num_matching['service'] < 10:
                 trclass = 'warn'
+            if 'service' not in v.fields or v.fields['service'] is None:
+                trclass = 'error'
 
             out += '<tr class="{}"><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
                 trclass,
