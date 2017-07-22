@@ -114,12 +114,12 @@ tr.error { background-color: red; }
             dups = [ v for v in found[id] if v['id'] != best['id'] ]
             dists = [v.getDist(best)*1000 for v in dups]
 
-            trclass = ''
+            trclass = set()
             if(dists):
                 if max(dists) > 500.0:
-                    trclass = 'error'
+                    trclass.add('error')
                 elif max(dists) > 50.0:
-                    trclass = 'warn'
+                    trclass.add('warn')
 
             if best['id'] in self.done['dedup']:
                 checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(best['id'])
@@ -127,7 +127,7 @@ tr.error { background-color: red; }
                 checkbox = '<label><input type="checkbox" name="dupes" value="{}:{}"></label>'.format(best['id'], ','.join([v['id'] for v in dups]))
 
             out += '<tr class="{}"><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
-                trclass,
+                ' '.join(trclass),
                 best['id'],
                 best['name'],
                 "<br/>\n".join(['<a href="https://foursquare.com/v/{1}">{0}</a> {2:0.2f}m'.format(v['name'], v['id'], v.getDist(best)*1000) for v in dups]),
@@ -155,6 +155,7 @@ tr.error { background-color: red; }
         out = self.startForm('/standardize/{}'.format(which))
         for v in venues:
             edit = v.getEdit()
+            trclass = set()
             if(edit):
                 if v['id'] in self.done['standardize']:
                     checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(v['id'])
@@ -164,16 +165,15 @@ tr.error { background-color: red; }
                 checkbox = '<a href="https://foursquare.com/v/{}">No edits</a>'.format(v['id'])
 
 
-            trclass = ''
             if (not 'type' in v.fields or v.fields['type'].lower() == 'stop') and v.fields['num'] and int(v.fields['num']) < 100:
-                trclass = 'warn'
+                trclass.add('warn')
             if v.num_matching['service'] < 10:
-                trclass = 'warn'
+                trclass.add('warn')
             if 'service' not in v.fields or v.fields['service'] is None:
-                trclass = 'error'
+                trclass.add('error')
 
             out += '<tr class="{}"><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
-                trclass,
+                ' '.join(trclass),
                 v['id'],
                 v['name'],
                 "<br/>\n".join(["{0} -> <{2}>{1}</{2}>".format(type, after, 'i' if type.find('Category') > -1 else 'b') for type, after in edit.items()]),
