@@ -3,6 +3,7 @@ import analyze
 import yaml
 from collections import OrderedDict
 from html import escape
+import pickle
 
 # Rewire YAML to use OrderedDict
 # From https://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts/21048064#21048064
@@ -24,7 +25,10 @@ class Callback(object):
         self.config = ordered_load(open('config.yaml','r'))
         self.crunch = analyze.VenuePool(self.creds, self.config)
         (self.venues, self.orphans) = self.crunch.crunch()
-        self.done = []
+        try:
+            self.done = pickle.load(open('cache/done','rb'))
+        except:
+            self.done = []
 
     @cherrypy.expose
     def index(self):
@@ -55,6 +59,8 @@ class Callback(object):
                     if result:
                         print(result)
                         self.done.append(v['id'])
+
+        pickle.dump(self.done, open('cache/done','wb'))
 
         venues = self.venues[which]
         print(self.venues.keys())
