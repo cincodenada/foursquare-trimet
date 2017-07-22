@@ -3,6 +3,7 @@ import re
 import os
 import pickle
 import copy
+from LatLon23 import LatLon, Latitude, Longitude
 from collections import Counter, defaultdict, OrderedDict
 
 def frange(start, end, step, factor):
@@ -131,6 +132,15 @@ class VenuePool(object):
         else:
             return field
 
+    def reportDuplicate(self, master, dupe):
+        if(master):
+            self.client.venues.flag(dupe, params={
+                'problem': 'duplicate',
+                'venueId': master,
+            })
+        else:
+            return False
+
 class AnalyzedVenue:
     def __init__(self, pool, venue):
         self.pool = pool
@@ -146,6 +156,13 @@ class AnalyzedVenue:
 
     def __getitem__(self, key):
         return self.venue[key]
+
+    def getLatLon(self):
+        loc = self['location']
+        return LatLon(Latitude(loc['lat']), Longitude(loc['lng']))
+
+    def getDist(self, venue):
+        return self.getLatLon().distance(venue.getLatLon())
 
     def getFormat(self, name):
         tomatch = name

@@ -1,7 +1,7 @@
 import cherrypy
 import analyze
 import yaml
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from html import escape
 import pickle
 
@@ -27,8 +27,30 @@ class Callback(object):
         (self.venues, self.orphans) = self.crunch.crunch()
         try:
             self.done = pickle.load(open('cache/done','rb'))
-        except:
-            self.done = []
+        except Exception:
+            self.done = defaultdict(list)
+
+    def startForm(self, action):
+        out = '<html><body>'
+        out += """<style>
+tr { height: 1px; }
+td { height:100%; min-width: 75px; }
+label { display:block; height: 100%; }
+input[type="submit"] { position: fixed; top:0.5em; }
+body { margin-top: 2.5em; }
+tr.warn { background-color: yellow; }
+tr.error { background-color: red; }
+</style>
+"""
+        out += '<form action="{}" method="POST">'.format(action)
+        out += '<input type="submit"/>'
+        out += "<table border=\"1\">"
+
+        return out
+
+    def endForm(self):
+        return "</table></form></body></html>"
+
 
     @cherrypy.expose
     def index(self):
@@ -50,6 +72,60 @@ class Callback(object):
         return outstr
 
     @cherrypy.expose
+    def dedup(self, dupes = None):
+        if(dupes):
+            if not isinstance(dupes, list):
+                dupes = [dupes]
+
+            for dup in dupes:
+                print("Dup:" + dup)
+                (master, tail) = dup.split(':')
+                rest = tail.split(',')
+                for dup_id in rest:
+                    self.crunch.reportDuplicate(master, dup_id)
+                self.done['dedup'].append(master)
+
+            pickle.dump(self.done, open('cache/done','wb'))
+
+        found = defaultdict(list)
+        dups = set()
+        for vl in self.venues.values():
+            for v in vl:
+                found[v.fields['num']].append(v)
+                if(len(found[v.fields['num']]) > 1):
+                    dups.add(v.fields['num'])
+
+        out = self.startForm('/dedup')
+        for id in dups:
+            best = found[id][0]
+            for v in found[id]:
+                for stat in ['checkinsCount', 'usersCount', 'tipCount']:
+                    if v['stats'][stat] > best['stats'][stat]:
+                        best = v
+                        continue
+                    elif v['stats'][stat] < best['stats'][stat]:
+                        continue
+
+            dups = [ v for v in found[id] if v['id'] != best['id'] ]
+
+            trclass = ''
+            if best['id'] in self.done['dedup']:
+                checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(best['id'])
+            else:
+                checkbox = '<label><input type="checkbox" name="dupes" value="{}:{}"></label>'.format(best['id'], ','.join([v['id'] for v in dups]))
+
+            out += '<tr class="{}"><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
+                trclass,
+                best['id'],
+                best['name'],
+                "<br/>\n".join(['<a href="https://foursquare.com/v/{1}">{0}</a> {2:0.2f}m'.format(v['name'], v['id'], v.getDist(best)*1000) for v in dups]),
+                checkbox
+            )
+
+        out += self.endForm()
+        return out
+
+    @cherrypy.expose
     def standardize(self, which, approved = None):
         if approved:
             for v in self.venues[which]:
@@ -58,30 +134,17 @@ class Callback(object):
                     result = v.proposeEdit()
                     if result:
                         print(result)
-                        self.done.append(v['id'])
-
+                        self.done['standardize'].append(v['id'])
+            
             pickle.dump(self.done, open('cache/done','wb'))
 
         venues = self.venues[which]
         print(self.venues.keys())
-        out = '<html><body>'
-        out += """<style>
-tr { height: 1px; }
-td { height:100%; min-width: 75px; }
-label { display:block; height: 100%; }
-input[type="submit"] { position: fixed; top:0.5em; }
-body { margin-top: 2.5em; }
-tr.warn { background-color: yellow; }
-tr.error { background-color: red; }
-</style>
-"""
-        out += '<form action="/standardize/{}" method="POST">'.format(which)
-        out += '<input type="submit"/>'
-        out += "<table border=\"1\">"
+        out = self.startForm('/standardize/{}'.format(which))
         for v in venues:
             edit = v.getEdit()
             if(edit):
-                if v['id'] in self.done:
+                if v['id'] in self.done['standardize']:
                     checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(v['id'])
                 else:
                     checkbox = '<label><input type="checkbox" name="approved" value="{}"></label>'.format(v['id'])
@@ -104,7 +167,8 @@ tr.error { background-color: red; }
                 "<br/>\n".join(["{0} -> <{2}>{1}</{2}>".format(type, after, 'i' if type.find('Category') > -1 else 'b') for type, after in edit.items()]),
                 checkbox
             )
-        out += "</table></form></body></html>"
+
+        out += self.endForm()
 
         return out
 
