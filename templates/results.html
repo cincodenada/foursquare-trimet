@@ -1,6 +1,7 @@
+<%! from urllib.parse import quote as q %>
 <%include file="header.html"/>
 % for t, c in typecounts.items():
-<a href="/standardize/${t|h,u}">${t|h}</a>: ${c}<br/>
+<a href="/standardize/${t|q}">${t|h}</a>: ${c}<br/>
 % endfor
 % for o in orphans:
 <a href="https://foursquare.com/v/${o['id']}">${o['name']}</a><br/>
