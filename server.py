@@ -84,7 +84,7 @@ class Callback(object):
                 if(len(found[id]) > 1):
                     dups.add(id)
 
-        out = self.startForm('/dedup')
+        duplist = []
         for id in dups:
             best = found[id][0]
             for v in found[id]:
@@ -106,21 +106,19 @@ class Callback(object):
                     trclass.add('warn')
 
             if best['id'] in self.done['dedup']:
-                checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(best['id'])
+                is_done = True
                 trclass.update(['done','submitted'])
-            else:
-                checkbox = '<label><input type="checkbox" name="dupes" value="{}:{}"></label>'.format(best['id'], ','.join([v['id'] for v in dups]))
 
-            out += '<tr class="{}"><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
-                ' '.join(trclass),
-                best['id'],
-                best['name'],
-                "<br/>\n".join(['<a href="https://foursquare.com/v/{1}">{0}</a> {2:0.2f}m'.format(v['name'], v['id'], v.getDist(best)*1000) for v in dups]),
-                checkbox
+            duplist.append([best, dups, ' '.join(trclass)])
+
+        try:
+            return self.tmpl.get_template('approvaltable.html').render(
+                url = '/dedup',
+                is_done = is_done,
+                duplist = duplist
             )
-
-        out += self.endForm()
-        return out
+        except:
+            return mako.exceptions.html_error_template().render()
 
     @cherrypy.expose
     def standardize(self, which, approved = None):
