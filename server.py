@@ -39,21 +39,29 @@ class Callback(object):
 
         self.tmpl = TemplateLookup(directories=['templates'])
 
+    def renderTmpl(self, name, params):
+        try:
+            return self.tmpl.get_template(name + '.html').render(**params)
+        except:
+            return mako.exceptions.html_error_template().render()
+
     @cherrypy.expose
     def index(self):
         outstr = ""
-        types = sorted(self.venues.keys(), key=lambda k: len(self.venues[k]), reverse=True)
+        typecounts = OrderedDict()
+        for t in sorted(self.venues.keys(), key=lambda k: len(self.venues[k]), reverse=True):
+            typecounts[t] = len(self.venues[t])
 
-        fieldcounts = {}
+        fieldcounts = OrderedDict()
         for field, vals in self.crunch.fieldcounts.items():
             valorder = sorted(vals.keys(), key=lambda k: vals[k], reverse=True)
             fieldcounts[field] = {s: vals[s] for s in valorder}
 
-        return self.tmpl.get_template('results.html').render(
-            typecounts = {t: len(self.venues[t]) for t in types},
-            orphans = self.orphans,
-            fieldcounts = fieldcounts
-        )
+        return self.renderTmpl('results', {
+            'typecounts': typecounts,
+            'orphans': self.orphans,
+            'fieldcounts': fieldcounts
+        })
 
     @cherrypy.expose
     def dedup(self, dupes = None):
@@ -111,14 +119,11 @@ class Callback(object):
 
             duplist.append([best, dups, ' '.join(trclass)])
 
-        try:
-            return self.tmpl.get_template('approvaltable.html').render(
-                url = '/dedup',
-                is_done = is_done,
-                duplist = duplist
-            )
-        except:
-            return mako.exceptions.html_error_template().render()
+        return self.renderTmpl('dups', {
+            'url': '/dedup',
+            'is_done': is_done,
+            'duplist': duplist
+        })
 
     @cherrypy.expose
     def standardize(self, which, approved = None):
