@@ -4,6 +4,7 @@ import yaml
 from collections import OrderedDict, defaultdict
 from html import escape
 import pickle
+import trimet
 
 # Rewire YAML to use OrderedDict
 # From https://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts/21048064#21048064
@@ -29,6 +30,9 @@ class Callback(object):
             self.done = pickle.load(open('cache/done','rb'))
         except Exception:
             self.done = defaultdict(list)
+
+        self.stops = trimet.StopList()
+        self.stops.loadCSV('/store/data/trimet/gtfs/stops.txt')
 
     def startForm(self, action):
         out = '<html><body>'
