@@ -25,7 +25,7 @@
             <td>
                 % for type, after in edit.items():
                 <% tag = 'i' if type.find('Category') > -1 else 'b' %>
-                ${type} -&gt; <${tag}>${after}</${tag}>
+                ${type} -&gt; <${tag}>${after}</${tag}><br/>
                 % endfor
             </td>
             <td>
