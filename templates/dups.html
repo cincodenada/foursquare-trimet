@@ -1,34 +1,20 @@
-<%def name="fslink(id, text)">
-<a href="https://foursquare.com/v/${id}">${text}</a>
-</%def>
-<%include file="header.html"/>
-<style>
-    tr { height: 1px; }
-    td { height:100%; min-width: 75px; }
-    label { display:block; height: 100%; }
-    input[type="submit"] { position: fixed; top:0.5em; }
-    body { margin-top: 2.5em; }
-    tr.warn { background-color: yellow; }
-    tr.error { background-color: red; }
-    .done { display: none; }
-</style>
+<%namespace name="util" file="util.html"/>
+<%inherit file="approvaltable.html"/>
 
-<form action="${url}" method="POST">
-    <input type="submit"/>
-    <table border="1">
+<%block name="tablecontents">
         % for (best, dups, trclass) in duplist:
         <tr class="${trclass}">
             <td>
-                ${fslink(best['id'], best['name'])}
+                ${util.fslink(best['id'], best['name'])}
             </td>
             <td>
                 % for v in dups:
-                ${fslink(v['id'], v['name'])} ${'{:0.2f}m'.format(v.getDist(best)*1000)}<br/>
+                ${util.fslink(v['id'], v['name'])} ${'{:0.2f}m'.format(v.getDist(best)*1000)}<br/>
                 % endfor
             </td>
             <td>
                 % if is_done:
-                ${fslink(best['id'], 'Submitted')}
+                ${util.fslink(best['id'], 'Submitted')}
                 % else:
                 <label>
                     <input type="checkbox" name="dupes" value="${best['id']}:${','.join([v['id'] for v in dups])}">
@@ -37,6 +23,4 @@
             </td>
         </tr>
         % endfor
-    </table>
-</form>
-<%include file="footer.html"/>
+</%block>
