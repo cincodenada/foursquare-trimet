@@ -139,21 +139,17 @@ class Callback(object):
             pickle.dump(self.done, open('cache/done','wb'))
 
         venues = self.venues[which]
-        print(self.venues.keys())
-        out = self.startForm('/standardize/{}'.format(which))
+        vlist = []
         for v in venues:
             edit = v.getEdit()
+            is_done = v['id'] in self.done['standardize']
             trclass = set()
-            if(edit):
-                if v['id'] in self.done['standardize']:
-                    checkbox = '<a href="https://foursquare.com/v/{}">Submitted</a>'.format(v['id'])
-                    trclass.update(['done','submitted'])
-                else:
-                    checkbox = '<label><input type="checkbox" name="approved" value="{}"></label>'.format(v['id'])
-            else:
-                checkbox = '<a href="https://foursquare.com/v/{}">No edits</a>'.format(v['id'])
-                trclass.update(['done','noedit'])
 
+            if(edit):
+                if is_done:
+                    trclass.update(['done','submitted'])
+            else:
+                trclass.update(['done','noedit'])
 
             if (not 'type' in v.fields or v.fields['type'].lower() == 'stop') and v.fields['num'] and int(v.fields['num']) < 100:
                 trclass.add('warn')
@@ -162,17 +158,14 @@ class Callback(object):
             if 'service' not in v.fields or v.fields['service'] is None:
                 trclass.add('error')
 
-            out += '<tr class="{}"><td><a href="https://foursquare.com/v/{}">{}</a></td><td>{}</td><td>{}</td></tr>\n'.format(
-                ' '.join(trclass),
-                v['id'],
-                v['name'],
-                "<br/>\n".join(["{0} -> <{2}>{1}</{2}>".format(type, after, 'i' if type.find('Category') > -1 else 'b') for type, after in edit.items()]),
-                checkbox
-            )
+            vlist.append([v, edit, ' '.join(trclass)])
 
-        out += self.endForm()
 
-        return out
+
+        return self.renderTmpl('standardize', {
+            'url': '/standardize/{}'.format(which),
+            'venues': vlist
+        })
 
     @cherrypy.expose
     def connect(self):
