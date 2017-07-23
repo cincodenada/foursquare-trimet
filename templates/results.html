@@ -1,0 +1,15 @@
+<%include file="header.html"/>
+% for t, c in typecounts.items():
+<a href="/standardize/${t|h,u}">${t|h}</a>: ${c}<br/>
+% endfor
+% for o in orphans:
+<a href="https://foursquare.com/v/${o['id']}">${o['name']}</a><br/>
+% endfor
+% for f, vals in fieldcounts.items():
+<hr>
+<h2>${f|h}</h2>
+% for v, c in vals.items():
+"${v|h}": ${c}<br/>
+% endfor
+% endfor
+<%include file="footer.html"/>

@@ -4,6 +4,9 @@ import yaml
 from collections import OrderedDict, defaultdict
 from html import escape
 import pickle
+from mako.lookup import TemplateLookup
+import mako
+
 import trimet
 
 # Rewire YAML to use OrderedDict
@@ -34,47 +37,23 @@ class Callback(object):
         self.stops = trimet.StopList()
         self.stops.loadCSV('/store/data/trimet/gtfs/stops.txt')
 
-    def startForm(self, action):
-        out = '<html><body>'
-        out += """<style>
-tr { height: 1px; }
-td { height:100%; min-width: 75px; }
-label { display:block; height: 100%; }
-input[type="submit"] { position: fixed; top:0.5em; }
-body { margin-top: 2.5em; }
-tr.warn { background-color: yellow; }
-tr.error { background-color: red; }
-.done { display: none; }
-</style>
-"""
-        out += '<form action="{}" method="POST">'.format(action)
-        out += '<input type="submit"/>'
-        out += "<table border=\"1\">"
-
-        return out
-
-    def endForm(self):
-        return "</table></form></body></html>"
-
+        self.tmpl = TemplateLookup(directories=['templates'])
 
     @cherrypy.expose
     def index(self):
         outstr = ""
         types = sorted(self.venues.keys(), key=lambda k: len(self.venues[k]), reverse=True)
-        for t in types:
-            vl = self.venues[t]
-            outstr += "<a href=\"/standardize/{0}\">{0}</a>: {1}<br/>\n".format(escape(t), len(vl))
 
-        for o in self.orphans:
-            outstr += '<a href="https://foursquare.com/v/{}">{}</a><br/>\n'.format(o['id'], o['name'])
-
+        fieldcounts = {}
         for field, vals in self.crunch.fieldcounts.items():
-            outstr += "<hr><h2>{}</h2>".format(field)
             valorder = sorted(vals.keys(), key=lambda k: vals[k], reverse=True)
-            for s in valorder:
-                outstr += "\"{}\": {}<br/>\n".format(s, vals[s])
+            fieldcounts[field] = {s: vals[s] for s in valorder}
 
-        return outstr
+        return self.tmpl.get_template('results.html').render(
+            typecounts = {t: len(self.venues[t]) for t in types},
+            orphans = self.orphans,
+            fieldcounts = fieldcounts
+        )
 
     @cherrypy.expose
     def dedup(self, dupes = None):
