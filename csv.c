@@ -85,6 +85,12 @@ struct CsvReader {
   char zErr[CSV_MXERR];  /* Error message */
 };
 
+typedef struct headerCol headerCol;
+struct headerCol {
+    char *txt;
+    headerCol *next;
+};
+
 /* Initialize a CsvReader object */
 static void csv_reader_init(CsvReader *p){
   p->in = 0;
@@ -474,6 +480,10 @@ static int csvtabConnect(
      "filename", "data", "schema", 
   };
   char *azPValue[3];         /* Parameter values */
+
+  headerCol *pFirstCol;
+  headerCol *pCurCol;
+
 # define CSV_FILENAME (azPValue[0])
 # define CSV_DATA     (azPValue[1])
 # define CSV_SCHEMA   (azPValue[2])
@@ -539,12 +549,27 @@ static int csvtabConnect(
   *ppVtab = (sqlite3_vtab*)pNew;
   if( pNew==0 ) goto csvtab_connect_oom;
   memset(pNew, 0, sizeof(*pNew));
+  if( bHeader == 1 ) {
+    pCurCol = pFirstCol = sqlite3_malloc( sizeof(headerCol) );
+    if( pFirstCol==0 ) goto csvtab_connect_oom;
+    memset(pFirstCol, 0, sizeof(headerCol));
+  }
   if( nCol>0 ){
     pNew->nCol = nCol;
   }else{
     do{
       const char *z = csv_read_one_field(&sRdr);
       if( z==0 ) goto csvtab_connect_oom;
+      if( bHeader==1 ) {
+        pCurCol->txt = sqlite3_malloc( sizeof(char)*(sRdr.n+1) );
+        strncpy(pCurCol->txt, sRdr.z, sRdr.n);
+        pCurCol->txt[sRdr.n] = '\0';
+
+        pCurCol->next = sqlite3_malloc( sizeof(headerCol) );
+        if( pCurCol->next==0 ) goto csvtab_connect_oom;
+        memset(pCurCol->next, 0, sizeof(headerCol));
+        pCurCol = pCurCol->next;
+      }
       pNew->nCol++;
     }while( sRdr.cTerm==',' );
   }
@@ -559,11 +584,25 @@ static int csvtabConnect(
     char *zSep = "";
     CSV_SCHEMA = sqlite3_mprintf("CREATE TABLE x(");
     if( CSV_SCHEMA==0 ) goto csvtab_connect_oom;
+    pCurCol = pFirstCol;
     for(i=0; i<pNew->nCol; i++){
-      CSV_SCHEMA = sqlite3_mprintf("%z%sc%d TEXT",CSV_SCHEMA, zSep, i);
+      if(bHeader == 1 && pCurCol && pCurCol->txt) {
+        CSV_SCHEMA = sqlite3_mprintf("%z%s%s TEXT",CSV_SCHEMA, zSep, pCurCol->txt);
+        pCurCol = pCurCol->next;
+      } else {
+        CSV_SCHEMA = sqlite3_mprintf("%z%sc%d TEXT",CSV_SCHEMA, zSep, i);
+      }
       zSep = ",";
     }
     CSV_SCHEMA = sqlite3_mprintf("%z);", CSV_SCHEMA);
+  }
+  // Clean up pCurCol
+  pCurCol = pFirstCol;
+  while(pCurCol) {
+    sqlite3_free(pCurCol->txt);
+    pFirstCol = pCurCol->next;
+    sqlite3_free(pCurCol);
+    pCurCol = pFirstCol;
   }
   rc = sqlite3_declare_vtab(db, CSV_SCHEMA);
   if( rc ) goto csvtab_connect_error;
