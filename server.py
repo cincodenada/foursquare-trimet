@@ -126,6 +126,32 @@ class Callback(object):
         })
 
     @cherrypy.expose
+    def deorphan(self, dupes = None):
+        if(dupes):
+            if not isinstance(dupes, list):
+                dupes = [dupes]
+
+            for dup in dupes:
+                print("Dup:" + dup)
+                (master, tail) = dup.split(':')
+                rest = tail.split(',')
+                for dup_id in rest:
+                    self.crunch.reportDuplicate(master, dup_id)
+                self.done['dedup'].append(master)
+
+            pickle.dump(self.done, open('cache/done','wb'))
+
+        out = []
+        for o in self.orphans:
+            stops = self.stops.findNearest(o.getLatLon())
+            out.append((o, stops, out))
+
+        return self.renderTmpl('orphans', {
+            'url': '/orphans',
+            'orphans': out
+        })
+
+    @cherrypy.expose
     def standardize(self, which, approved = None):
         if approved:
             for v in self.venues[which]:
