@@ -269,7 +269,7 @@ class AnalyzedVenue:
             'description': self.descriptionFromStop(stop)
         }
 
-        halves = stop.code.split(' & ', 1)
+        halves = stop.name.split(" & ", 1)
         extra['address'] = halves[0]
         if(len(halves) > 1):
             extra['crossStreet'] = 'at ' + halves[1]
@@ -280,6 +280,6 @@ class AnalyzedVenue:
         self.proposeEdit(self.getStopData(stop))
 
     def descriptionFromStop(self, stop):
-        dirmatch = re.match('\w+bound', stop.name)
-        direction = dirmatch.group() if dirmatch else ''
-        return "Served by {}lines {}".format(direction, ', '.join(sorted(stop.lines)))
+        dirmatch = re.match('\w+bound', stop.desc)
+        direction = (dirmatch.group().lower() + ' ') if dirmatch else ''
+        return "Served by {}line{} {}".format(direction, 's' if len(stop.lines) > 1 else '', ', '.join(sorted(stop.lines, key=lambda s: int(s))))
