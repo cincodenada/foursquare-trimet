@@ -1,7 +1,7 @@
 import csv
 from scipy.spatial import KDTree
 from numpy import array, hstack
-from LatLon23 import LatLon, Latitude, Longitude
+from coord import Coord
 from collections import OrderedDict
 
 class StopList(object):
@@ -16,7 +16,7 @@ class StopList(object):
         return self.tree
 
     def findNearest(self, point):
-        if(isinstance(point, LatLon)):
+        if(isinstance(point, Coord)):
             point = [point.lat, point.lon]
 
         nearestIdx = self.getTree().query(array(point, float))
@@ -51,7 +51,7 @@ class Stop(object):
         self.lines = set()
 
     def getLatLon(self):
-        return LatLon(self.lat, self.lon)
+        return Coord(self.lat, self.lon)
 
     def point(self):
         return (self.lat, self.lon)
