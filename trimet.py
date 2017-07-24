@@ -83,7 +83,7 @@ class Line(object):
         if(max):
             return ('MAX', max.group(1))
         
-        psc = re.match(r'Portland Streetcar - (.*?)( Line)?', self.long_name)
+        psc = re.match(r'Portland Streetcar - (.*?)( Line)?$', self.long_name)
         if(psc):
             return ('Portland Streetcar', psc.group(1))
 
