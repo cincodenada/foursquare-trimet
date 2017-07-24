@@ -62,6 +62,9 @@ class StopList(object):
         return self.lines[id]
 
 class Line(object):
+    suffixes = defaultdict(lambda: None,
+        MAX = 'Line'
+    )
     def __init__(self, parent, csvrow):
         self.parent = parent
 
@@ -76,11 +79,11 @@ class Line(object):
         if(self.short_name):
             return (None, self.short_name)
 
-        max = re.match('MAX (.*) Line', self.long_name)
+        max = re.match(r'MAX (.*) Line', self.long_name)
         if(max):
             return ('MAX', max.group(1))
         
-        psc = re.match('Portland Streetcar - (.*?)( Line)?', self.long_name)
+        psc = re.match(r'Portland Streetcar - (.*?)( Line)?', self.long_name)
         if(psc):
             return ('Portland Streetcar', psc.group(1))
 
@@ -125,19 +128,25 @@ class Stop(object):
             elif(len(lines) == 1 and lines[0] is None):
                 parts.append(group)
             else:
-                parts.append(group + ' ' + self.joinWithAnd(lines))
+                parts.append(group + ' ' + self.joinWithAnd(lines, Line.suffixes[group]))
 
         dirmatch = re.match('\w+bound', self.desc)
         direction = (dirmatch.group().lower() + ' ') if dirmatch else ''
 
         return ''.join([direction, self.joinWithAnd(parts)])
 
-    def joinWithAnd(self, parts):
+    def joinWithAnd(self, parts, suffix = None, suffix_s = None):
+        if suffix is None:
+            suffix = suffix_s = ''
+        else:
+            suffix = ' ' + suffix
+            suffix_s = suffix + 's'
+
         if(len(parts) == 0):
             return ''
         if(len(parts) == 1):
-            return parts[0]
+            return parts[0] + suffix
         elif(len(parts) == 2):
-            return ' and '.join(parts)
+            return ' and '.join(parts) + ' ' + suffix_s
         else:
-            return ', '.join(parts[0:-1]) + ', and ' + parts[-1]
+            return ', '.join(parts[0:-1]) + ', and ' + parts[-1] + ' ' + suffix_s
