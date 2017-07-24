@@ -35,14 +35,26 @@ class StopList(object):
             for row in reader:
                 self.addStop(dict(zip(header, row)))
 
+    def loadLines(self, csvpath):
+        with open(csvpath) as csvfile:
+            reader = csv.reader(csvfile, delimiter='|')
+            for (stop_id, lines) in reader:
+                if stop_id in self.stops:
+                    self.stops[stop_id].setLines(lines)
+
 class Stop(object):
     def __init__(self, csvrow):
         for colname, val in csvrow.items():
             colname = colname.replace('stop_','')
             setattr(self, colname, val)
 
+        self.lines = set()
+
     def getLatLon(self):
         return LatLon(self.lat, self.lon)
 
     def point(self):
         return (self.lat, self.lon)
+
+    def setLines(self, lines):
+        self.lines.update(lines.split(','))
