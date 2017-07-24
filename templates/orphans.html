@@ -1,0 +1,17 @@
+<%namespace name="util" file="util.html"/>
+<%inherit file="approvaltable.html"/>
+
+<%block name="tablecontents">
+        % for (o, s, trclass) in orphans:
+        <tr class="${trclass}">
+            <td>
+                ${util.fslink(o['id'], o['name'])}
+            </td>
+            <td>
+                ${util.fslink(s.id, s.name)} ${'{:0.2f}m'.format(o.getDist(s)*1000)}<br/>
+            </td>
+            <td>
+            </td>
+        </tr>
+        % endfor
+</%block>

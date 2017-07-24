@@ -9,23 +9,19 @@ from collections import Counter, defaultdict, OrderedDict
 def frange(start, end, step, factor):
     return [x/factor for x in range(int(start*factor), int(end*factor), int(step*factor))]
 
-class Coord(object):
-    def __init__(self, lat, lon = None):
+class Coord(LatLon):
+    def __init__(self, lat, lon = None, precision=2):
+        self.precision=2
         if(isinstance(lat, dict)):
-            self.lat = lat['lat']
-            self.lon = lat['lon']
+            super().__init__(lat['lat'], lat['lon'])
         else:
-            self.lat = lat
-            self.lon = lon
+            super().__init__(lat, lon)
 
-    def addBoth(self, deg):
-        self.lat += deg
-        self.lon += deg
-        return self
+    def setPrecision(self, precision):
+        self.precision = precision
 
     def __str__(self):
-        return '{:0.2f},{:0.2f}'.format(self.lat, self.lon)
-
+        return ','.join(['{:0.{}f}'.format(float(v), self.precision) for v in [self.lat, self.lon]])
 
 class VenuePool(object):
     def __init__(self, creds, config):
@@ -73,7 +69,7 @@ class VenuePool(object):
 
         for lat in frange(sw.lat, ne.lat, gs, 100):
             for lon in frange(sw.lon, ne.lon, gs, 100):
-                curne = Coord(lat, lon).addBoth(gs)
+                curne = Coord(lat+gs, lon+gs)
                 cursw = Coord(lat, lon)
                 self.subcrunch(curne, cursw)
 
@@ -159,7 +155,7 @@ class AnalyzedVenue:
 
     def getLatLon(self):
         loc = self['location']
-        return LatLon(Latitude(loc['lat']), Longitude(loc['lng']))
+        return Coord(loc['lat'], loc['lng'])
 
     def getDist(self, venue):
         return self.getLatLon().distance(venue.getLatLon())
