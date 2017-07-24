@@ -262,7 +262,7 @@ class AnalyzedVenue:
         extra = {
             'name': self.nameFromStop(stop),
             'venuell': stop.getLatLon().csv(5),
-            'description': self.descriptionFromStop(stop)
+            'description': 'Served by ' + stop.getServedBy(),
         }
 
         halves = stop.name.split(" & ", 1)
@@ -273,9 +273,4 @@ class AnalyzedVenue:
         return extra
 
     def matchStop(self, stop):
-        self.proposeEdit(self.getStopData(stop))
-
-    def descriptionFromStop(self, stop):
-        dirmatch = re.match('\w+bound', stop.desc)
-        direction = (dirmatch.group().lower() + ' ') if dirmatch else ''
-        return "Served by {}line{} {}".format(direction, 's' if len(stop.lines) > 1 else '', ', '.join(sorted(stop.lines, key=lambda s: int(s))))
+        return self.proposeEdit(self.getStopData(stop))

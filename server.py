@@ -36,6 +36,7 @@ class Callback(object):
 
         self.stops = trimet.StopList()
         self.stops.loadCSV('/store/data/trimet/gtfs/stops.txt')
+        self.stops.loadLineInfo('/store/data/trimet/gtfs/routes.txt')
         self.stops.loadLines('lines_by_stop')
 
         self.tmpl = TemplateLookup(directories=['templates'])
