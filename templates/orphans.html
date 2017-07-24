@@ -8,10 +8,43 @@
                 ${util.fslink(o['id'], o['name'])}
             </td>
             <td>
-                ${util.fslink(s.id, s.name)} ${'{:0.2f}m'.format(o.getDist(s)*1000)}<br/>
+                ${util.fslink(s.id, s.name)} ${'{:0.2f}m'.format(o.getDist(s)*1000)} ${','.join(s.lines)}<br/>
+                <input type="hidden" name="orphan_pos" value="${o.getLatLon().csv(5)}"/>
+                <input type="hidden" name="stop_pos" value="${s.getLatLon().csv(5)}"/>
             </td>
             <td>
             </td>
         </tr>
         % endfor
+</%block>
+
+<%block name="subhead">
+<style>
+#floatmap {
+    position: fixed;
+    right: 0px;
+    top: 0px;
+    width: 400px;
+    height: 300px;
+}
+</style>
+<img id="floatmap" src=""> 
+</%block>
+
+<%block name="subfoot">
+<script>
+var apikey='${apikey}';
+var apibase='https://maps.googleapis.com/maps/api/staticmap?'
+document.querySelector('table').addEventListener('click', function(evt) {
+    var tr = evt.target.closest('tr');
+    var orphan_pos = tr.querySelector('input[name="orphan_pos"]').value;
+    var stop_pos = tr.querySelector('input[name="stop_pos"]').value;
+    var map = document.querySelector('#floatmap')
+    map.src = apibase +
+        'key=' + apikey +
+        '&markers=color:green%7Clabel:S%7C' + stop_pos +
+        '&markers=color:red%7Clabel:O%7C' + orphan_pos +
+        '&size=' + map.clientWidth + 'x' + map.clientHeight
+});
+</script>
 </%block>

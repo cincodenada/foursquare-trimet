@@ -11,6 +11,8 @@
     .done { display: none; }
 </style>
 
+<%block name="subhead"/>
+
 <form action="${url}" method="POST">
     <input type="submit"/>
     <table border="1">
@@ -18,3 +20,5 @@
     </table>
 </form>
 <%include file="footer.html"/>
+
+<%block name="subfoot"/>

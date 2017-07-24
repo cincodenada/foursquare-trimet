@@ -41,6 +41,9 @@ class Callback(object):
         self.tmpl = TemplateLookup(directories=['templates'])
 
     def renderTmpl(self, name, params):
+        params.update({
+            'apikey': self.creds['gmaps_key'],
+        })
         try:
             return self.tmpl.get_template(name + '.html').render(**params)
         except:
