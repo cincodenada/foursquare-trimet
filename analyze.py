@@ -231,11 +231,11 @@ class AnalyzedVenue:
         if not correctPrimary:
             params['primaryCategoryId'] = std['category_id']
 
-        params.update(extra_params)
         return params
 
     def proposeEdit(self, extra_params = {}):
         edits = self.getEdit(extra_params)
+        edits.update(extra_params)
         if(edits):
             return self.pool.client.venues.proposeedit(self['id'], params=edits)
         else:
@@ -262,10 +262,24 @@ class AnalyzedVenue:
             'service': 'TriMet',
         })
 
-    def matchStop(self, stop):
+    def getStopData(self, stop):
         extra = {
             'name': self.nameFromStop(stop),
             'venuell': stop.getLatLon().csv(5),
+            'description': self.descriptionFromStop(stop)
         }
-        self.proposeEdit(extra)
 
+        halves = stop.code.split(' & ', 1)
+        extra['address'] = halves[0]
+        if(len(halves) > 1):
+            extra['crossStreet'] = 'at ' + halves[1]
+
+        return extra
+
+    def matchStop(self, stop):
+        self.proposeEdit(self.getStopData(stop))
+
+    def descriptionFromStop(self, stop):
+        dirmatch = re.match('\w+bound', stop.name)
+        direction = dirmatch.group() if dirmatch else ''
+        return "Served by {}lines {}".format(direction, ', '.join(sorted(stop.lines)))

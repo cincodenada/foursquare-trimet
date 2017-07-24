@@ -9,6 +9,13 @@
             </td>
             <td>
                 ${util.fslink(s.id, s.name)} ${'{:0.2f}m'.format(o.getDist(s)*1000)} ${','.join(s.lines)}<br/>
+                <table>
+                % for k, v in o.getStopData(s).items():
+                % if k not in ['venuell']:
+                <tr><td>${k}</td><td>${v}</td></tr>
+                % endif
+                % endfor
+                </table>
                 <input type="hidden" name="orphan_pos" value="${o.getLatLon().csv(5)}"/>
                 <input type="hidden" name="stop_pos" value="${s.getLatLon().csv(5)}"/>
             </td>
