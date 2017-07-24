@@ -42,7 +42,7 @@ class VenuePool(object):
 
     def crunch(self):
         self.venues = defaultdict(list)
-        self.orphans = []
+        self.orphans = {}
         self.fieldcounts = defaultdict(Counter)
 
         # TODO: Make signs work everywhere
@@ -78,7 +78,7 @@ class VenuePool(object):
 
                 self.venues[venue.genericName()].append(venue)
             else:
-                self.orphans.append(venue)
+                self.orphans[venue['id']] = venue
 
     def getQuadrant(self, ne, sw):
         path = 'cache/{}_{}'.format(ne, sw)
@@ -135,6 +135,7 @@ class AnalyzedVenue:
             (self.parts, self.fields) = matched
         else:
             self.matched = False
+            self.fields = {}
 
     def __getitem__(self, key):
         return self.venue[key]
@@ -201,16 +202,20 @@ class AnalyzedVenue:
             else:
                 return self.pool.getTopValue(field, value)
 
-    def getEdit(self):
+    def getEdit(self, extra_params = {}):
         std = self.getStandard()
         if not std:
             return None
         
         params = {}
-        if(self.standardizedName() != self['name']):
-            params['name'] = self.standardizedName()
-            if not params['name']:
-                return None
+        try:
+            name = self.standardizedName()
+            if(name != self['name']):
+                params['name'] = self.standardizedName()
+                if not params['name']:
+                    return None
+        except KeyError:
+            pass
 
         correctPrimary = False
         remove = []
@@ -226,18 +231,22 @@ class AnalyzedVenue:
         if not correctPrimary:
             params['primaryCategoryId'] = std['category_id']
 
+        params.update(extra_params)
         return params
 
-    def proposeEdit(self):
-        edits = self.getEdit()
+    def proposeEdit(self, extra_params = {}):
+        edits = self.getEdit(extra_params)
         if(edits):
             return self.pool.client.venues.proposeedit(self['id'], params=edits)
         else:
             return False
 
-    def standardizedName(self):
+    def standardizedName(self, fields = None):
         stdfields = {}
-        for f, v in self.fields.items():
+        if not fields:
+            fields = self.fields
+
+        for f, v in fields.items():
             std = self.standardize(f, v)
             if(std):
                 stdfields[f] = std
@@ -246,4 +255,17 @@ class AnalyzedVenue:
                 stdfields[f] = v
         
         return self.getStandard()['format'].format(**stdfields)
+
+    def nameFromStop(self, stop):
+        return self.standardizedName({
+            'num': stop.id,
+            'service': 'TriMet',
+        })
+
+    def matchStop(self, stop):
+        extra = {
+            'name': self.nameFromStop(stop),
+            'venuell': stop.getLatLon().csv(5),
+        }
+        self.proposeEdit(extra)
 

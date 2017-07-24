@@ -42,6 +42,9 @@ class StopList(object):
                 if stop_id in self.stops:
                     self.stops[stop_id].setLines(lines)
 
+    def __getitem__(self, key):
+        return self.stops[key]
+
 class Stop(object):
     def __init__(self, csvrow):
         for colname, val in csvrow.items():

@@ -2,10 +2,10 @@
 <%inherit file="approvaltable.html"/>
 
 <%block name="tablecontents">
-        % for (o, s, trclass) in orphans:
-        <tr class="${trclass}">
+        % for (o, s, is_done) in orphans:
+        <tr class="${'done' if is_done else ''}">
             <td>
-                ${util.fslink(o['id'], o['name'])}
+                ${util.fslink(o['id'], o['name'], o.nameFromStop(s))}
             </td>
             <td>
                 ${util.fslink(s.id, s.name)} ${'{:0.2f}m'.format(o.getDist(s)*1000)} ${','.join(s.lines)}<br/>
@@ -13,6 +13,13 @@
                 <input type="hidden" name="stop_pos" value="${s.getLatLon().csv(5)}"/>
             </td>
             <td>
+                % if is_done:
+                ${util.fslink(o['id'], 'Submitted')}
+                % else:
+                <label>
+                    <input type="checkbox" name="fixlist" value="${o['id']}:${s.id}"/>
+                </label>
+                % endif
             </td>
         </tr>
         % endfor

@@ -130,28 +130,26 @@ class Callback(object):
         })
 
     @cherrypy.expose
-    def deorphan(self, dupes = None):
-        if(dupes):
-            if not isinstance(dupes, list):
-                dupes = [dupes]
+    def deorphan(self, fixlist = None, **kwargs):
+        if(fixlist):
+            if not isinstance(fixlist, list):
+                fixlist = [fixlist]
 
-            for dup in dupes:
-                print("Dup:" + dup)
-                (master, tail) = dup.split(':')
-                rest = tail.split(',')
-                for dup_id in rest:
-                    self.crunch.reportDuplicate(master, dup_id)
-                self.done['dedup'].append(master)
+            for fix in fixlist:
+                print("To fix:" + fix)
+                (orphan_id, stop_id) = fix.split(':')
+                self.orphans[orphan_id].matchStop(self.stops[stop_id])
+                self.done['deorphan'].append(orphan_id)
 
             pickle.dump(self.done, open('cache/done','wb'))
 
         out = []
-        for o in self.orphans:
+        for o in self.orphans.values():
             stops = self.stops.findNearest(o.getLatLon())
-            out.append((o, stops, out))
+            out.append((o, stops, o['id'] in self.done['deorphan']))
 
         return self.renderTmpl('orphans', {
-            'url': '/orphans',
+            'url': '/deorphan',
             'orphans': out
         })
 
