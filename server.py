@@ -138,7 +138,8 @@ class Callback(object):
             for fix in fixlist:
                 print("To fix:" + fix)
                 (orphan_id, stop_id) = fix.split(':')
-                self.orphans[orphan_id].matchStop(self.stops[stop_id])
+                res = self.orphans[orphan_id].matchStop(self.stops[stop_id])
+                print(res)
                 self.done['deorphan'].append(orphan_id)
 
             pickle.dump(self.done, open('cache/done','wb'))
