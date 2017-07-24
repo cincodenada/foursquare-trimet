@@ -11,7 +11,7 @@ def frange(start, end, step, factor):
 
 class Coord(LatLon):
     def __init__(self, lat, lon = None, precision=2):
-        self.precision=2
+        self.precision=precision
         if(isinstance(lat, dict)):
             super().__init__(lat['lat'], lat['lon'])
         else:
@@ -20,8 +20,17 @@ class Coord(LatLon):
     def setPrecision(self, precision):
         self.precision = precision
 
+    def csv(self, precision=None):
+        return ','.join(['{:0.{}f}'.format(float(v), precision or self.precision) for v in [self.lat, self.lon]])
+
     def __str__(self):
-        return ','.join(['{:0.{}f}'.format(float(v), self.precision) for v in [self.lat, self.lon]])
+        return self.csv()
+
+    def flat(self):
+        return float(self.lat)
+
+    def flon(self):
+        return float(self.lon)
 
 class VenuePool(object):
     def __init__(self, creds, config):
@@ -64,11 +73,11 @@ class VenuePool(object):
         ne = Coord(self.config['ne'])
         sw = Coord(self.config['sw'])
 
-        print(frange(sw.lat, ne.lat, gs, 100))
-        print(frange(sw.lon, ne.lon, gs, 100))
+        print(frange(sw.flat(), ne.flat(), gs, 100))
+        print(frange(sw.flon(), ne.flon(), gs, 100))
 
-        for lat in frange(sw.lat, ne.lat, gs, 100):
-            for lon in frange(sw.lon, ne.lon, gs, 100):
+        for lat in frange(sw.flat(), ne.flat(), gs, 100):
+            for lon in frange(sw.flon(), ne.flon(), gs, 100):
                 curne = Coord(lat+gs, lon+gs)
                 cursw = Coord(lat, lon)
                 self.subcrunch(curne, cursw)
