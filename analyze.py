@@ -21,7 +21,6 @@ class VenuePool(object):
 
         self.regexes = OrderedDict()
         for phase, relist in config['regex'].items():
-            print(phase)
             self.regexes[phase] = OrderedDict()
             for n, r in relist.items():
                 self.regexes[phase][n] = re.compile(r, re.IGNORECASE)
@@ -49,9 +48,6 @@ class VenuePool(object):
         gs = self.config['gridsize']
         ne = Coord(self.config['ne'])
         sw = Coord(self.config['sw'])
-
-        print(frange(sw.flat(), ne.flat(), gs, 100))
-        print(frange(sw.flon(), ne.flon(), gs, 100))
 
         for lat in frange(sw.flat(), ne.flat(), gs, 100):
             for lon in frange(sw.flon(), ne.flon(), gs, 100):
