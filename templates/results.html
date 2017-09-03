@@ -3,7 +3,7 @@
 % for t, c in typecounts.items():
 <a href="/standardize/${t|q}">${t|h}</a>: ${c}<br/>
 % endfor
-% for o in orphans:
+% for o in orphans.values():
 <a href="https://foursquare.com/v/${o['id']}">${o['name']}</a><br/>
 % endfor
 % for f, vals in fieldcounts.items():
